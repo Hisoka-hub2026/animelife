@@ -1,100 +1,147 @@
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+
+_G.AnimeLifeSmartAutofarm = false
+_G.ActionDelay = 7.0 
+local isMinimized = false
+
+-- GUI Interface in PlayerGui
 local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instance.new("Frame")
-local Title = Instance.new("TextLabel")
-local LoopBtn = Instance.new("TextButton")
-local SpeedBtn = Instance.new("TextButton")
-local DefaultBtn = Instance.new("TextButton")
-local StatusLabel = Instance.new("TextLabel")
-local PointsScroll = Instance.new("ScrollingFrame")
-
-local SAVED_POINTS = {}
-for i = 1, 20 do SAVED_POINTS[i] = Vector3.new(0,0,0) end
-
-local DEFAULT_COORDS = {
-    [1] = Vector3.new(-1103.7, 49.6, 1465.4),
-    [2] = Vector3.new(-1407.6, 56.1, 1484.7),
-    [3] = Vector3.new(-887.2, 43.6, 1437.0),
-    [4] = Vector3.new(-1402.1, 51.6, 1429.1),
-    [5] = Vector3.new(-1181.6, 49.6, 1698.6),
-    [6] = Vector3.new(-1276.1, 49.6, 1875.6),
-    [7] = Vector3.new(-822.9, 49.6, 1839.6),
-    [8] = Vector3.new(-1418.1, 51.6, 1265.9),
-    [9] = Vector3.new(-1086.9, 63.6, 1984.9),
-    [10] = Vector3.new(-1179.8, 49.6, 1699.4),
-    [11] = Vector3.new(-793.6, 41.6, 1263.8),
-    [12] = Vector3.new(-1341.9, 63.6, 2006.8),
-    [13] = Vector3.new(-1418.5, 51.6, 1268.4),
-    [14] = Vector3.new(-982.9, 49.1, 1671.7),
-    [15] = Vector3.new(-743.9, 49.6, 1617.9),
-    [16] = Vector3.new(-751.1, 49.6, 1889.3),
-    [17] = Vector3.new(-1273.8, 49.6, 1873.9),
-    [18] = Vector3.new(-1466.3, 51.6, 1199.2),
-    [19] = Vector3.new(-832.0, 49.6, 1664.1), -- Новые исправленные координаты
-}
-
-local TELEPORT_INTERVAL = 5.0 
-local isLooping = false
-local LocalPlayer = game.Players.LocalPlayer
-
+ScreenGui.Name = "AnimeLife_HisokaHub_Pizza"
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
-MainFrame.Name = "AnimeLifeDefaultHub"
-MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 24, 30)
-MainFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-MainFrame.Size = UDim2.new(0, 290, 0, 390) 
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 250, 0, 255) 
+MainFrame.Position = UDim2.new(0.15, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
-Title.Parent = MainFrame
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.Text = "Anime Life: Slide-Route v2.8"
+-- Top title bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
+TitleBar.BackgroundColor3 = Color3.fromRGB(230, 126, 34)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Anime Life: Auto farm pizza delivery man" -- Added "man" at the end
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.BackgroundColor3 = Color3.fromRGB(230, 126, 34)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 14
+Title.TextSize = 13
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
 
-StatusLabel.Parent = MainFrame
-StatusLabel.Position = UDim2.new(0, 0, 0.09, 0)
-StatusLabel.Size = UDim2.new(1, 0, 0, 20)
-StatusLabel.Text = "Status: Route is empty"
-StatusLabel.TextColor3 = Color3.fromRGB(241, 196, 15)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.TextSize = 12
+-- Minimize button
+local MiniBtn = Instance.new("TextButton")
+MiniBtn.Size = UDim2.new(0, 35, 1, 0)
+MiniBtn.Position = UDim2.new(1, -35, 0, 0)
+MiniBtn.BackgroundColor3 = Color3.fromRGB(211, 84, 0)
+MiniBtn.BorderSizePixel = 0
+MiniBtn.Text = "_"
+MiniBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MiniBtn.Font = Enum.Font.SourceSansBold
+MiniBtn.TextSize = 16
+MiniBtn.Parent = TitleBar
 
-DefaultBtn.Parent = MainFrame
-DefaultBtn.Position = UDim2.new(0.05, 0, 0.15, 0)
-DefaultBtn.Size = UDim2.new(0.9, 0, 0, 30)
-DefaultBtn.Text = "⚙️ LOAD DEFAULT PRESET"
-DefaultBtn.BackgroundColor3 = Color3.fromRGB(142, 68, 173) 
-DefaultBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-DefaultBtn.Font = Enum.Font.SourceSansBold
-DefaultBtn.TextSize = 12
+-- Container for inner elements
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, 0, 1, -35)
+ContentFrame.Position = UDim2.new(0, 0, 0, 35)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
+ContentFrame.Parent = MainFrame
 
-LoopBtn.Parent = MainFrame
-LoopBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
-LoopBtn.Size = UDim2.new(0.42, 0, 0, 35)
-LoopBtn.Text = "START"
-LoopBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-LoopBtn.Font = Enum.Font.SourceSansBold
-LoopBtn.TextSize = 13
+local DelayLabel = Instance.new("TextLabel")
+DelayLabel.Size = UDim2.new(0, 110, 0, 30)
+DelayLabel.Position = UDim2.new(0, 12, 0, 10)
+DelayLabel.BackgroundTransparency = 1
+DelayLabel.Text = "Set Delay (sec):"
+DelayLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+DelayLabel.Font = Enum.Font.SourceSans
+DelayLabel.TextSize = 13
+DelayLabel.TextXAlignment = Enum.TextXAlignment.Left
+DelayLabel.Parent = ContentFrame
 
-SpeedBtn.Parent = MainFrame
-SpeedBtn.Position = UDim2.new(0.53, 0, 0.25, 0)
-SpeedBtn.Size = UDim2.new(0.42, 0, 0, 35)
-SpeedBtn.Text = "CD: 5 sec"
-SpeedBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
-SpeedBtn.Font = Enum.Font.SourceSansBold
-SpeedBtn.TextSize = 13
+local DelayInput = Instance.new("TextBox")
+DelayInput.Size = UDim2.new(0, 80, 0, 25)
+DelayInput.Position = UDim2.new(0, 145, 0, 12)
+DelayInput.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+DelayInput.Text = tostring(_G.ActionDelay)
+DelayInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+DelayInput.Font = Enum.Font.Code
+DelayInput.TextSize = 12
+DelayInput.BorderSizePixel = 0
+DelayInput.Parent = ContentFrame
 
-PointsScroll.Parent = MainFrame
-PointsScroll.Position = UDim2.new(0.05, 0, 0.36, 0)
-PointsScroll.Size = UDim2.new(0.9, 0, 0, 235)
-PointsScroll.BackgroundTransparency = 1
-PointsScroll.CanvasSize = UDim2.new(0, 0, 0, 720) 
-PointsScroll.ScrollBarThickness = 5
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(1, -24, 0, 40)
+ToggleBtn.Position = UDim2.new(0, 12, 0, 50)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+ToggleBtn.Text = "START AUTOFARM"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.TextSize = 14
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Parent = ContentFrame
 
+local LogLabel = Instance.new("TextLabel")
+LogLabel.Size = UDim2.new(1, -24, 0, 25)
+LogLabel.Position = UDim2.new(0, 12, 0, 95)
+LogLabel.BackgroundTransparency = 1
+LogLabel.Text = "Status: Idle"
+LogLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+LogLabel.TextSize = 12
+LogLabel.Parent = ContentFrame
+
+local InfoLabel = Instance.new("TextLabel")
+InfoLabel.Size = UDim2.new(1, -24, 0, 80)
+InfoLabel.Position = UDim2.new(0, 12, 0, 125)
+InfoLabel.BackgroundTransparency = 1
+InfoLabel.Text = "Notice: The game may pay differently depending on how fast the farm is, and the amount itself fluctuates (or the game has a protection for this case - if there is, unfortunately, no information is known to me about it)."
+InfoLabel.TextColor3 = Color3.fromRGB(241, 196, 15) 
+InfoLabel.Font = Enum.Font.SourceSansItalic
+InfoLabel.TextSize = 11
+InfoLabel.TextWrapped = true 
+InfoLabel.TextYAlignment = Enum.TextYAlignment.Top
+InfoLabel.Parent = ContentFrame
+
+-- Author watermark
+local CreditLabel = Instance.new("TextLabel")
+CreditLabel.Size = UDim2.new(0, 100, 0, 20)
+CreditLabel.Position = UDim2.new(1, -110, 1, -18) 
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Text = "by hisoka hub"
+CreditLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+CreditLabel.TextTransparency = 0.75 
+CreditLabel.Font = Enum.Font.SourceSansItalic
+CreditLabel.TextSize = 11
+CreditLabel.TextXAlignment = Enum.TextXAlignment.Right
+CreditLabel.Parent = ContentFrame
+
+-- Minimize / Expand toggle logic
+MiniBtn.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        ContentFrame.Visible = false 
+        MainFrame:TweenSize(UDim2.new(0, 250, 0, 35), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+        MiniBtn.Text = "+"
+    else
+        MainFrame:TweenSize(UDim2.new(0, 250, 0, 255), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+        task.wait(0.15) 
+        ContentFrame.Visible = true 
+        MiniBtn.Text = "_"
+    end
+end)
+
+-- Safe custom teleport method
 local function physicsTeleport(targetVector)
     local char = LocalPlayer.Character
     if not char then return end
@@ -123,107 +170,92 @@ local function physicsTeleport(targetVector)
     end
 end
 
-local ButtonsTable = {}
-for i = 1, 20 do
-    local ItemFrame = Instance.new("Frame")
-    local Label = Instance.new("TextLabel")
-    local ActionBtn = Instance.new("TextButton")
-    
-    ItemFrame.Parent = PointsScroll
-    ItemFrame.Size = UDim2.new(1, 0, 0, 30) 
-    ItemFrame.Position = UDim2.new(0, 0, 0, (i-1) * 35) 
-    ItemFrame.BackgroundTransparency = 1
-    
-    Label.Parent = ItemFrame
-    Label.Size = UDim2.new(0.3, 0, 1, 0)
-    Label.Text = "Point " .. i .. ":"
-    Label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Label.BackgroundTransparency = 1
-    Label.TextSize = 13
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    
-    ActionBtn.Parent = ItemFrame
-    ActionBtn.Position = UDim2.new(0.3, 0, 0.05, 0)
-    ActionBtn.Size = UDim2.new(0.7, 0, 0.9, 0)
-    ActionBtn.Text = "[0.0, 0.0, 0.0]"
-    ActionBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    ActionBtn.TextColor3 = Color3.fromRGB(160, 160, 160)
-    ActionBtn.Font = Enum.Font.Code
-    ActionBtn.TextSize = 10 
-    
-    ButtonsTable[i] = ActionBtn
-    
-    ActionBtn.MouseButton1Click:Connect(function()
-        if isLooping then return end
-        local char = LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            local currentPos = char.HumanoidRootPart.Position
-            SAVED_POINTS[i] = currentPos
-            ActionBtn.Text = string.format("[X:%.1f, Y:%.1f, Z:%.1f]", currentPos.X, currentPos.Y, currentPos.Z)
-            ActionBtn.BackgroundColor3 = Color3.fromRGB(41, 128, 185)
-            ActionBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        end
-    end)
-end
-
-DefaultBtn.MouseButton1Click:Connect(function()
-    if isLooping then return end
-    TELEPORT_INTERVAL = 1.0
-    SpeedBtn.Text = "CD: 1.0 sec"
-    
-    for i = 1, 19 do
-        local pos = DEFAULT_COORDS[i]
-        if pos then
-            SAVED_POINTS[i] = pos
-            ButtonsTable[i].Text = string.format("[X:%.1f, Y:%.1f, Z:%.1f]", pos.X, pos.Y, pos.Z)
-            ButtonsTable[i].BackgroundColor3 = Color3.fromRGB(39, 174, 96) 
-            ButtonsTable[i].TextColor3 = Color3.fromRGB(255, 255, 255)
-        end
+-- Built-in Anti-AFK
+LocalPlayer.Idled:Connect(function()
+    if _G.AnimeLifeSmartAutofarm then
+        VirtualUser:Button2Down(Vector3.new(0,0,0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector3.new(0,0,0), workspace.CurrentCamera.CFrame)
     end
-    
-    StatusLabel.Text = "Status: 19 points loaded! CD 1s."
-    StatusLabel.TextColor3 = Color3.fromRGB(46, 204, 113)
 end)
 
-SpeedBtn.MouseButton1Click:Connect(function()
-    if TELEPORT_INTERVAL == 5.0 then TELEPORT_INTERVAL = 10.0
-    elseif TELEPORT_INTERVAL == 10.0 then TELEPORT_INTERVAL = 1.0
-    elseif TELEPORT_INTERVAL == 1.0 then TELEPORT_INTERVAL = 3.0
-    elseif TELEPORT_INTERVAL == 3.0 then TELEPORT_INTERVAL = 5.0 end
-    SpeedBtn.Text = "CD: " .. TELEPORT_INTERVAL .. " sec"
-end)
-
-LoopBtn.MouseButton1Click:Connect(function()
-    isLooping = not isLooping
-    if isLooping then
-        LoopBtn.Text = "STOP"
-        LoopBtn.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
+-- Main Farm Loop
+task.spawn(function()
+    while true do
+        local startWait = tick()
+        while tick() - startWait < _G.ActionDelay do
+            if _G.AnimeLifeSmartAutofarm then
+                local timeLeft = string.format("%.1f", _G.ActionDelay - (tick() - startWait))
+                LogLabel.Text = "Timer: " .. timeLeft .. " sec."
+            end
+            task.wait(0.1)
+        end
         
-        task.spawn(function()
-            while isLooping do
-                for i = 1, 20 do
-                    if not isLooping then break end
-                    local coords = SAVED_POINTS[i]
-                    
-                    if coords and coords ~= Vector3.new(0, 0, 0) then
-                        StatusLabel.Text = "Teleporting to Point " .. i
-                        physicsTeleport(coords)
-                        
-                        local startWait = tick()
-                        while tick() - startWait < TELEPORT_INTERVAL do
-                            if not isLooping then break end
-                            task.wait(0.1)
+        if _G.AnimeLifeSmartAutofarm then
+            local zoneFound = false
+            local zoneVector = nil
+            
+            pcall(function()
+                local compRegion = workspace:FindFirstChild("CompletionRegion")
+                if compRegion then
+                    local driveZone = compRegion:FindFirstChild("DriveZone")
+                    if driveZone and driveZone:IsA("BasePart") then
+                        if driveZone.Position.Y > -50 then
+                            zoneVector = driveZone.Position
+                            zoneFound = true
                         end
                     end
                 end
-                task.wait(0.1)
+            end)
+            
+            if zoneFound and zoneVector then
+                LogLabel.Text = "Status: Teleporting to DriveZone"
+                physicsTeleport(zoneVector)
+            else
+                LogLabel.Text = "Status: Target missing. Returning to base..."
+                
+                local pizzaBase = nil
+                for _, zone in pairs(workspace:GetDescendants()) do
+                    if zone:IsA("BasePart") and (zone.Name:lower():match("pizza") or zone.Name:lower():match("delivery")) then
+                        if zone.Size.Magnitude > 4 and not zone:IsDescendantOf(workspace:FindFirstChild("CompletionRegion") or workspace) then
+                            pizzaBase = zone
+                            break
+                        end
+                    end
+                end
+                
+                if pizzaBase then 
+                    physicsTeleport(pizzaBase.Position) 
+                else
+                    LogLabel.Text = "Error: Pizza spawn not found."
+                end
             end
-            StatusLabel.Text = "Status: Loop stopped"
-            StatusLabel.TextColor3 = Color3.fromRGB(241, 196, 15)
-        end)
+        end
+    end
+end)
+
+-- Handler to save custom delay from input box
+DelayInput.FocusLost:Connect(function(enterPressed)
+    local checkNum = tonumber(DelayInput.Text)
+    if checkNum and checkNum > 0 then
+        _G.ActionDelay = checkNum
     else
-        LoopBtn.Text = "START"
-        LoopBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-        StatusLabel.Text = "Status: Set custom points (1-20)"
+        DelayInput.Text = tostring(_G.ActionDelay)
+    end
+end)
+
+-- Button logic
+ToggleBtn.MouseButton1Click:Connect(function()
+    _G.AnimeLifeSmartAutofarm = not _G.AnimeLifeSmartAutofarm
+    if _G.AnimeLifeSmartAutofarm then
+        local checkNum = tonumber(DelayInput.Text)
+        if checkNum and checkNum > 0 then _G.ActionDelay = checkNum end
+        
+        ToggleBtn.Text = "AUTOFARM: ON"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+    else
+        ToggleBtn.Text = "START AUTOFARM"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(150, 30, 30)
+        LogLabel.Text = "Status: Stopped"
     end
 end)
